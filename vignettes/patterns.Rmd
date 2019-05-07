@@ -26,12 +26,29 @@ The dplyr verbs can be categorised along three main properties:
 - How the verb handle groups. Most of the time, grouped data frames produce different results than ungrouped data frames because the computations occur within group levels.
 
 
-## Selections and actions {#sec:selections-actions}
+## Actions and selections {#sec:actions-selections}
 
-dplyr is designed to fit in the R language as naturally as possible. Operations in dplyr verbs usually behave just like any R code, with a few added features:
+Actions and selections are two kinds of operations in dplyr and the tidyverse. We call __operations__ the arguments supplied by the user that either create new columns or vectors, or select them from a data frame. An operation may be very simple. For instance, the following examples feature two operations `eye_color` and `hair_color`:
+
+```{r}
+starwars %>% arrange(mass, hair_color)
+starwars %>% select(mass, hair_color)
+```
+
+But really, the operations can become as complex as you like:
+
+```{r}
+starwars %>% arrange(-mass, desc(paste(hair_color, eye_color)))
+starwars %>% select(1 + 2, intersect(starts_with("hair"), ends_with("color")))
+```
+
+To be effective at writing more complex dplyr operations, the key is to understand the difference between actions and selections.
+
+
+### Actions
+
+Actions are the most common flavour of dplyr operations. They behave just like any ordinary R code, with a few added features:
 
 - Operations are computed in the context of your data frame. This means you can refer to your columns as if they were actual objects in your workspace. We call this __data masking__ because the columns have precedence over other objects in your workspace, i.e. they mask these objects.
 
 - Operations are computed within groups. With a normal data frame, operations are applied on the whole set of rows. With a grouped tibble, operations are applied once per group level, on the subsets of rows corresponding to each level.
-
-Most dplyr verbs follow these two principles. However, selectioning variables with `select()` behave quite differently. In this section, you'll learn about the difference between actions and selections.
