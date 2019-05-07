@@ -1,0 +1,37 @@
+---
+title: "Patterns of dplyr operations"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to dplyr}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r, echo = FALSE, message = FALSE}
+knitr::opts_chunk$set(collapse = T, comment = "#>")
+options(tibble.print_min = 4L, tibble.print_max = 4L)
+library(dplyr)
+library(ggplot2)
+set.seed(1014)
+```
+
+dplyr is designed to be intuitive. Ideally, it should be immediately obvious what a dplyr pipeline is about from a cursory reading, even if the reader is not a tidyverse or even R user. But despite this apparent simplicitly, many different things happen under the hood. This vignette explains how each dplyr verb behaves to help you become more proficient in writing R and tidyverse code.
+
+The dplyr verbs can be categorised along three main properties:
+
+- How they reshape the data frame. Many verbs may create columns, other can remove columns. Some shrink the number of rows, others make it longer. Quite often, the shape does not change.
+
+- The type of data passed in by the user. Is the data created on the spot by computing new columns or is the data purely selected within the data frame? In the former case, the verb takes __actions__, in the latter case, it takes __selections__.
+
+- How the verb handle groups. Most of the time, grouped data frames produce different results than ungrouped data frames because the computations occur within group levels.
+
+
+## Selections and actions {#sec:selections-actions}
+
+dplyr is designed to fit in the R language as naturally as possible. Operations in dplyr verbs usually behave just like any R code, with a few added features:
+
+- Operations are computed in the context of your data frame. This means you can refer to your columns as if they were actual objects in your workspace. We call this __data masking__ because the columns have precedence over other objects in your workspace, i.e. they mask these objects.
+
+- Operations are computed within groups. With a normal data frame, operations are applied on the whole set of rows. With a grouped tibble, operations are applied once per group level, on the subsets of rows corresponding to each level.
+
+Most dplyr verbs follow these two principles. However, selectioning variables with `select()` behave quite differently. In this section, you'll learn about the difference between actions and selections.
