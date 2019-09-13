@@ -15,7 +15,7 @@ library(ggplot2)
 set.seed(1014)
 ```
 
-dplyr is designed to be intuitive. Ideally, it should be immediately obvious what a dplyr pipeline is about from a cursory reading, even if the reader is not a tidyverse or even R user. But despite this apparent simplicitly, many different things happen under the hood. This vignette explains how each dplyr verb behaves to help you become more proficient in writing R and tidyverse code.
+The main design goal of dplyr is to be intuitive. Ideally, it should be obvious from a glance what a piece of dplyr is about, and what it does. But despite this apparent simplicitly, many different things happen under the hood. This vignette explains how each dplyr verb behaves to help you become more proficient in writing R and tidyverse code.
 
 The dplyr verbs can be categorised along three main properties:
 
@@ -32,6 +32,7 @@ Actions and selections are two kinds of operations in dplyr and the tidyverse. W
 
 ```{r}
 starwars %>% arrange(mass, hair_color)
+
 starwars %>% select(mass, hair_color)
 ```
 
@@ -39,16 +40,52 @@ But really, the operations can become as complex as you like:
 
 ```{r}
 starwars %>% arrange(-mass, desc(paste(hair_color, eye_color)))
+
 starwars %>% select(1 + 2, intersect(starts_with("hair"), ends_with("color")))
 ```
 
-To be effective at writing more complex dplyr operations, the key is to understand the difference between actions and selections.
+While all operations look like R code, they are actually interpreted a little differently, depending on the dplyr verb at the receiving end. The key too be effective at writing more complex dplyr operations is to understand the difference between two kinds of operations, actions and selections.
 
 
 ### Actions
 
-Actions are the most common flavour of dplyr operations. They behave just like any ordinary R code, with a few added features:
+Actions are the most common flavour of dplyr operations. They behave just like any ordinary R code, with a few added features.
 
-- Operations are computed in the context of your data frame. This means you can refer to your columns as if they were actual objects in your workspace. We call this __data masking__ because the columns have precedence over other objects in your workspace, i.e. they mask these objects.
 
-- Operations are computed within groups. With a normal data frame, operations are applied on the whole set of rows. With a grouped tibble, operations are applied once per group level, on the subsets of rows corresponding to each level.
+#### Data creation
+
+All actions create new data. To illustrate this, we use `transmute()`, a dplyr verb that takes actions and returns the result of those actions, preserving the shape of the data frame:
+
+```{r}
+starwars %>% transmute(1 + 2)
+```
+
+We get a one-column data frame containing the result of `1 + 2`, recycled to the total data frame size, and given an automatic name to remind how the data was created.
+
+
+#### Data masking
+
+Actions are computed in the context of your data frame. This means you can refer to your columns as if they were actual objects in your workspace. We call this __data masking__ because the columns have precedence over other objects in your workspace, i.e. they mask these objects.
+
+```{r}
+height <- 500
+
+# In the workspace, we can safely refer to workspace objects:
+height / 100
+
+# In the data mask, they are masked by the data:
+starwars %>% transmute(height / 100)
+```
+
+
+#### Grouping
+
+When you supply a grouped tibble, actions are automatically computed within groups. This is a dplyr feature that isn't available in all data-masking APIs, for instance actions supplied to `ggplot2::aes()` are not computed within groups.
+
+```{r}
+# Standardising by the population standard deviation
+starwars %>% transmute(height = height / sd(height, na.rm = TRUE))
+
+# Standardising by within-group standard deviations
+starwars %>% group_by(eye_color) %>% transmute(height = height / sd(height, na.rm = TRUE))
+```
