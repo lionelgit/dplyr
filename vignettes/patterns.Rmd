@@ -89,3 +89,83 @@ starwars %>% transmute(height = height / sd(height, na.rm = TRUE))
 # Standardising by within-group standard deviations
 starwars %>% group_by(eye_color) %>% transmute(height = height / sd(height, na.rm = TRUE))
 ```
+
+
+### Selections
+
+The usage of `dplyr::select()` looks similar to other verbs. In some cases, you'll get exactly the same results:
+
+```{r}
+starwars %>% select(height)
+
+starwars %>% transmute(height)
+```
+
+However `select()` actually uses a different mechanism under the hood. The arguments to `select()` are _selections_, not actions. Whereas action verbs take entire vectors as arguments, selecting verbs take column names or column positions. Observe the difference:
+
+```{r}
+starwars %>% select(2)
+
+starwars %>% transmute(2)
+```
+
+The key feature of selecting verbs is that column names represent their own _position_ inside the data frame. From the persective of `select()`, `height` is the same as `2` because it is the second column in the `starwars` data frame. On the other hand, `transmute()` takes actions and interprets `2` as a new column recycled to the full data frame size.
+
+There are two reasons for this difference.
+
+1. It makes it possible to select ranges of columns with `start:end`. For instance, `name:mass` expands to `1:3`. This couldn't work if `name` and `mass` represented the entire columns rather than just their positions.
+
+2. It allows overlapping selections. Take the sets of columns starting with the letter `"h"` and of columns ending with the suffix `"_color"`:
+
+   ```{r}
+   starwars %>% select(starts_with("h")) %>% names()
+
+   starwars %>% select(ends_with("_color")) %>% names()
+   ```
+
+   It is easy to select the union of those overlapping sets:
+
+   ```{r}
+   starwars %>% select(starts_with("h"), ends_with("_color")) %>% names()
+   ```
+
+   To achieve this, `select()` needs unique identifiers for the columns, which the column positions provide.
+
+
+### The origins of actions and selections
+
+#### Data masking
+
+Actions are operations evaluated with a data mask. The notion of actions is embedded deep in the R language:
+
+```{r}
+result <- with(starwars, mass / 100)
+head(result)
+```
+
+The low-level function `eval()` makes it easy to implement actions:
+
+```{r}
+expr <- quote(mass / 100)
+result <- eval(expr, starwars)
+head(result)
+```
+
+Tidyverse packages use tidy eval, an extension of base R data masking provided by the [rlang](https://rlang.r-lib.org/) package.
+
+
+#### The `select` argument
+
+Selections were introduced in base R with the `select` argument of `base::subset()`:
+
+```{r}
+subset(starwars, select = name:mass)
+```
+
+Selections are implemented with a special data mask that contains column positions:
+
+```{r}
+mask <- as.list(seq_along(starwars))
+names(mask) <- names(starwars)
+str(mask)
+```
