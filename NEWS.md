@@ -1,5 +1,7 @@
 # dplyr 0.9.0 (in development)
 
+* The `names<-` method for `grouped_df` now preserves renamed groups.
+
 * `[` method for `grouped_df` now preserves remaining groups, if any.
 * The `names<-` method for `grouped_df` now preserves renamed groups.
 

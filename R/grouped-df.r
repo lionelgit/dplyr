@@ -278,6 +278,13 @@ ungroup.grouped_df <- function(x, ...) {
   }
 }
 
+#' @export
+`names<-.grouped_df` <- function(x, value) {
+  out <- NextMethod()
+  groups_pos <- match(group_vars(x), names(x))
+  dplyr::grouped_df(out, value[groups_pos])
+}
+
 #' @method rbind grouped_df
 #' @export
 rbind.grouped_df <- function(...) {

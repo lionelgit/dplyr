@@ -8,6 +8,17 @@ test_that("`[` preserves remaining groups", {
   expect_identical(group_vars(df[c("vs", "am")]), c("vs", "am"))
 })
 
+test_that("groups are restored after renaming", {
+  orig <- group_by(mtcars, cyl, vs)
+
+  df <- orig
+  names(df)[2] <- "foo"
+  expect_identical(group_vars(df), c("foo", "vs"))
+
+  exp_data <- set_names(group_data(orig), c("foo", "vs", ".rows"))
+  expect_equal(group_data(df), exp_data)
+})
+
 
 # Constructor --------------------------------------------------------
 
