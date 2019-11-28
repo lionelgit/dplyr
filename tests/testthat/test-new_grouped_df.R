@@ -1,4 +1,15 @@
-context("new_grouped_df")
+
+# Vector methods -----------------------------------------------------
+
+test_that("`[` preserves remaining groups", {
+  df <- group_by(mtcars, cyl, vs, am)
+  expect_identical(group_vars(df[1:3]), "cyl")
+  expect_identical(group_vars(df[]), c("cyl", "vs", "am"))
+  expect_identical(group_vars(df[c("vs", "am")]), c("vs", "am"))
+})
+
+
+# Constructor --------------------------------------------------------
 
 test_that("new grouped_df checks that `group_data` has a `.rows` column (#3837)", {
   tbl <- tibble(x = 1:10)

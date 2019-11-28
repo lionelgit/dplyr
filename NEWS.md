@@ -1,5 +1,11 @@
 # dplyr 0.9.0 (in development)
 
+* `[` method for `grouped_df` now preserves remaining groups, if any.
+* The `names<-` method for `grouped_df` now preserves renamed groups.
+
+* The `[` method for `grouped_df` now preserves remaining groups, if any.
+  It previously removed all groups as soon as one was selected out.
+
 * `mutate()` and `summarise()` automatically unpack unnamed tibble results (#2326).
 
 * `group_keys.rowwise_df()` gives a 0 column data frame with n() rows. 

@@ -270,11 +270,11 @@ ungroup.grouped_df <- function(x, ...) {
     return(y)
   }
 
-  group_names <- group_vars(x)
-  if (!all(group_names %in% names(y))) {
-    tbl_df(y)
-  } else {
+  group_names <- intersect(names(y), group_vars(x))
+  if (length(group_names)) {
     grouped_df(y, group_names, group_by_drop_default(x))
+  } else {
+    tbl_df(y)
   }
 }
 
