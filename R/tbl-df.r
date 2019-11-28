@@ -780,6 +780,11 @@ left_join.tbl_df <- function(x, y, by = NULL, copy = FALSE,
                              na_matches = pkgconfig::get_config("dplyr::na_matches")) {
   check_valid_names(tbl_vars(x))
   check_valid_names(tbl_vars(y))
+
+  old <- x
+  x <- tibble::as_tibble(x, .name_repair = "minimal")
+  y <- tibble::as_tibble(y, .name_repair = "minimal")
+
   by <- common_by(by, x, y)
   suffix <- check_suffix(suffix)
   na_matches <- check_na_matches(na_matches)
@@ -794,8 +799,8 @@ left_join.tbl_df <- function(x, y, by = NULL, copy = FALSE,
   aux_y <- vars$idx$y$aux
 
   # unique values and where they are in each
-  x_split <- vec_group_pos(x[, by_x, drop = FALSE])
-  y_split <- vec_group_pos(y[, by_y, drop = FALSE])
+  x_split <- vec_group_pos(x[, by_x])
+  y_split <- vec_group_pos(y[, by_y])
 
   # matching uniques in x with uniques in y
   matches <- vec_match(
@@ -830,12 +835,12 @@ left_join.tbl_df <- function(x, y, by = NULL, copy = FALSE,
 
   # columns from y
   y_result <- set_names(
-    vec_slice(y[, aux_y, drop = FALSE], y_indices),
+    vec_slice(y[, aux_y], y_indices),
     vars$alias[seq2(ncol(x) + 1, length(vars$alias))]
   )
 
   out <- add_column(x_result, !!!y_result)
-  reconstruct_join(out, x, vars)
+  reconstruct_join(out, old, vars)
 }
 
 #' @export
@@ -845,6 +850,11 @@ right_join.tbl_df <- function(x, y, by = NULL, copy = FALSE,
                               na_matches = pkgconfig::get_config("dplyr::na_matches")) {
   check_valid_names(tbl_vars(x))
   check_valid_names(tbl_vars(y))
+
+  old <- x
+  x <- tibble::as_tibble(x, .name_repair = "minimal")
+  y <- tibble::as_tibble(y, .name_repair = "minimal")
+
   by <- common_by(by, x, y)
   suffix <- check_suffix(suffix)
   na_matches <- check_na_matches(na_matches)
@@ -859,8 +869,8 @@ right_join.tbl_df <- function(x, y, by = NULL, copy = FALSE,
   alias <- vars$alias
 
   # unique values and where they are in each
-  x_split <- vec_group_pos(x[, by_x, drop = FALSE])
-  y_split <- vec_group_pos(y[, by_y, drop = FALSE])
+  x_split <- vec_group_pos(x[, by_x])
+  y_split <- vec_group_pos(y[, by_y])
 
   # matching uniques in x with uniques in y
   matches <- vec_match(
@@ -889,24 +899,24 @@ right_join.tbl_df <- function(x, y, by = NULL, copy = FALSE,
 
   # the joined columns (taken from `y`)
   join_result <- set_names(
-    vec_slice(y[, by_y, drop = FALSE], y_indices),
+    vec_slice(y[, by_y], y_indices),
     alias[seq_len(length(by_y))]
   )
 
   # colums from x
   x_result <- set_names(
-    vec_slice(x[, aux_x, drop = FALSE], x_indices),
+    vec_slice(x[, aux_x], x_indices),
     alias[seq2(length(by_y) + 1L, length(by_y) + length(aux_x))]
   )
 
   # columns from y
   y_result <- set_names(
-    vec_slice(y[, aux_y, drop = FALSE], y_indices),
+    vec_slice(y[, aux_y], y_indices),
     alias[seq2(length(by_y) + length(aux_x) + 1, length(alias))]
   )
 
   out <- add_column(join_result, !!!x_result, !!!y_result)
-  reconstruct_join(out, x, vars)
+  reconstruct_join(out, old, vars)
 }
 
 #' @export
@@ -916,6 +926,11 @@ full_join.tbl_df <- function(x, y, by = NULL, copy = FALSE,
                              na_matches = pkgconfig::get_config("dplyr::na_matches")) {
   check_valid_names(tbl_vars(x))
   check_valid_names(tbl_vars(y))
+
+  old <- x
+  x <- tibble::as_tibble(x, .name_repair = "minimal")
+  y <- tibble::as_tibble(y, .name_repair = "minimal")
+
   by <- common_by(by, x, y)
   suffix <- check_suffix(suffix)
   na_matches <- check_na_matches(na_matches)
@@ -930,8 +945,8 @@ full_join.tbl_df <- function(x, y, by = NULL, copy = FALSE,
   by_names <- vars$alias[seq_len(length(by_x))]
 
   # unique values and where they are in each
-  x_split <- vec_group_pos(set_names(x[, by_x, drop = FALSE], by_names))
-  y_split <- vec_group_pos(set_names(y[, by_y, drop = FALSE], by_names))
+  x_split <- vec_group_pos(set_names(x[, by_x], by_names))
+  y_split <- vec_group_pos(set_names(y[, by_y], by_names))
 
   # matching uniques in x with uniques in y and vice versa
   x_matches <- vec_match(x_split$key, y_split$key)
@@ -971,24 +986,24 @@ full_join.tbl_df <- function(x, y, by = NULL, copy = FALSE,
 
   # joined columns, cast to their common types
   joined <- bind_rows(
-    vec_slice(set_names(x[, by_x, drop = FALSE], by_names), x_indices_one),
-    vec_slice(set_names(y[, by_y, drop = FALSE], by_names), y_indices_two)
+    vec_slice(set_names(x[, by_x], by_names), x_indices_one),
+    vec_slice(set_names(y[, by_y], by_names), y_indices_two)
   )
 
   # colums from x
   x_result <- set_names(
-    vec_slice(x[, aux_x, drop = FALSE], c(x_indices_one, x_indices_two)),
+    vec_slice(x[, aux_x], c(x_indices_one, x_indices_two)),
     vars$alias[seq2(ncol(joined) + 1, ncol(x))]
   )
 
   # columns from y
   y_result <- set_names(
-    vec_slice(y[, aux_y, drop = FALSE], c(y_indices_one, y_indices_two)),
+    vec_slice(y[, aux_y], c(y_indices_one, y_indices_two)),
     vars$alias[seq2(ncol(x) + 1, length(vars$alias))]
   )
 
   out <- add_column(joined, !!!x_result, !!!y_result)
-  reconstruct_join(out, x, vars)
+  reconstruct_join(out, old, vars)
 }
 
 #' @export
@@ -998,21 +1013,25 @@ semi_join.tbl_df <- function(x, y, by = NULL, copy = FALSE, ...,
   check_valid_names(tbl_vars(x), warn_only = TRUE)
   check_valid_names(tbl_vars(y), warn_only = TRUE)
 
+  old <- x
+  x <- tibble::as_tibble(x, .name_repair = "minimal")
+  y <- tibble::as_tibble(y, .name_repair = "minimal")
+
   by <- common_by(by, x, y)
   by_x <- check_by_x(by$x)
   y <- auto_copy(x, y, copy = copy)
 
-  x_split <- vec_group_pos(x[, by_x, drop = FALSE])
+  x_split <- vec_group_pos(x[, by_x])
   y_split <- vec_group_pos(
-    set_names(y[, by$y, drop = FALSE], by_x)
+    set_names(y[, by$y], by_x)
   )
 
   matches <- which(!is.na(vec_match(x_split$key, y_split$key)))
   x_indices <- sort(vec_c(!!!x_split$pos[matches], .ptype = integer()))
 
   out <- vec_slice(x, x_indices)
-  if (is_grouped_df(x)) {
-    out <- grouped_df(out, group_vars(x), group_by_drop_default(x))
+  if (is_grouped_df(old)) {
+    out <- grouped_df(out, group_vars(old), group_by_drop_default(old))
   }
   out
 }
@@ -1023,6 +1042,10 @@ anti_join.tbl_df <- function(x, y, by = NULL, copy = FALSE, ...,
                              na_matches = pkgconfig::get_config("dplyr::na_matches")) {
   check_valid_names(tbl_vars(x), warn_only = TRUE)
   check_valid_names(tbl_vars(y), warn_only = TRUE)
+
+  old <- x
+  x <- tibble::as_tibble(x, .name_repair = "minimal")
+  y <- tibble::as_tibble(y, .name_repair = "minimal")
 
   by <- common_by(by, x, y)
   by_x <- check_by_x(by$x)
@@ -1037,8 +1060,8 @@ anti_join.tbl_df <- function(x, y, by = NULL, copy = FALSE, ...,
   x_indices <- sort(vec_c(!!!x_split$pos[matches], .ptype = integer()))
 
   out <- vec_slice(x, x_indices)
-  if (is_grouped_df(x)) {
-    out <- grouped_df(out, group_vars(x), group_by_drop_default(x))
+  if (is_grouped_df(old)) {
+    out <- grouped_df(out, group_vars(old), group_by_drop_default(old))
   }
   out
 }
