@@ -125,7 +125,7 @@ select.data.frame <- function(.data, ...) {
   loc <- tidyselect::eval_select(expr(c(...)), .data)
   loc <- ensure_group_vars(loc, .data, notify = TRUE)
 
-  dplyr_col_select(.data, loc, names(loc))
+  safe_col_select(.data, loc, names(loc))
 }
 
 

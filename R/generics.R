@@ -201,7 +201,8 @@ dplyr_reconstruct.rowwise_df <- function(data, template) {
   rowwise_df(data, group_vars)
 }
 
-dplyr_col_select <- function(.data, loc, names = NULL) {
+# Dispatch on `[` and check invariants without reconstructing
+safe_col_select <- function(.data, loc, names = NULL) {
   loc <- vec_as_location(loc, n = ncol(.data), names = names(.data))
   out <- .data[loc]
   if (!inherits(out, "data.frame")) {
