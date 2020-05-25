@@ -37,3 +37,18 @@ test_that("before and after are defused with context", {
     names(relocate(mtcars, 3, .after = 5))
   )
 })
+
+test_that("relocate() reconstructs with `[`", {
+  local_methods(`[.dplyr_foobar` = function(x, i, ...) {
+    out <- quux(NextMethod())
+    out$dispatched <- rep(TRUE, nrow(out))
+    out
+  })
+
+  df <- foobar(data.frame(x = 1, y = 2))
+
+  expect_identical(
+    relocate(df, y),
+    quux(data.frame(y = 2, x = 1, dispatched = TRUE))
+  )
+})

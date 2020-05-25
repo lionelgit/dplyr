@@ -71,5 +71,5 @@ relocate.data.frame <- function(.data, ..., .before = NULL, .after = NULL) {
   lhs <- setdiff(seq2(1, where - 1), to_move)
   rhs <- setdiff(seq2(where + 1, ncol(.data)), to_move)
 
-  .data[vec_unique(c(lhs, to_move, rhs))]
+  dplyr_col_select(.data, vec_unique(c(lhs, to_move, rhs)))
 }

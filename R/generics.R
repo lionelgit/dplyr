@@ -201,6 +201,14 @@ dplyr_reconstruct.rowwise_df <- function(data, template) {
   rowwise_df(data, group_vars)
 }
 
+# The `[` method is in charge of reconstructing. We may want to call
+# `dplyr_reconstruct()` anyway in case the `[` method upcasts to
+# data.frame, e.g. when sticky columns are selected out.
+dplyr_col_select <- function(data, loc) {
+  loc <- vec_as_location(loc, n = ncol(data), names = names(data))
+  data[loc]
+}
+
 # Dispatch on `[` and check invariants without reconstructing
 safe_col_select <- function(.data, loc, names = NULL) {
   loc <- vec_as_location(loc, n = ncol(.data), names = names(.data))

@@ -1,6 +1,10 @@
 local_methods <- function(..., .frame = caller_env()) {
   local_bindings(..., .env = global_env(), .frame = .frame)
 }
+with_methods <- function(expr, ...) {
+  local_methods(...)
+  expr
+}
 
 local_foo_df <- function(frame = caller_env()) {
   local_methods(.frame = frame,
@@ -20,3 +24,19 @@ local_foo_df <- function(frame = caller_env()) {
     }
   )
 }
+
+new_ctor <- function(base_class) {
+  function(x = list(), ..., class = NULL) {
+    if (inherits(x, "tbl_df")) {
+      tibble::new_tibble(x, class = c(class, base_class), nrow = nrow(x))
+    } else if (is.data.frame(x)) {
+      structure(x, class = c(class, base_class, "data.frame"), ...)
+    } else {
+      structure(x, class = c(class, base_class), ...)
+    }
+  }
+}
+
+foobar <- new_ctor("dplyr_foobar")
+foobaz <- new_ctor("dplyr_foobaz")
+quux <- new_ctor("dplyr_quux")

@@ -344,6 +344,29 @@ test_that("can use .before and .after to control column position", {
   expect_named(mutate(df, x = 1, .after = y), c("x", "y"))
 })
 
+test_that("mutate() reconstructs with `[`", {
+  local_methods(`[.dplyr_foobar` = function(x, i, ...) {
+    out <- quux(NextMethod())
+    out$dispatched <- rep(TRUE, nrow(out))
+    out
+  })
+
+  df <- foobar(data.frame(x = 1, y = 2))
+
+  expect_identical(
+    mutate(df, new = x + 1, .keep = "unused"),
+    quux(data.frame(y = 2, new = 2, dispatched = TRUE))
+  )
+  expect_identical(
+    mutate(df, new = x + 1, .keep = "used"),
+    quux(data.frame(x = 1, new = 2, dispatched = TRUE))
+  )
+  expect_identical(
+    mutate(df, new = x + 1, .keep = "none"),
+    quux(data.frame(new = 2, dispatched = TRUE))
+  )
+})
+
 # Error messages ----------------------------------------------------------
 
 test_that("mutate() give meaningful errors", {
