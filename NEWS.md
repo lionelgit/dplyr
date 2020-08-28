@@ -1,5 +1,9 @@
 # dplyr (development version)
 
+* Fixed issue in `bind_rows()` causing lists to be incorrectly transformed as
+  data frames (#5417).
+
+
 # dplyr 1.0.2
 
 * Fixed `across()` issue where data frame columns would mask objects referred to
